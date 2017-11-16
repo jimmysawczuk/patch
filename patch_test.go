@@ -22,10 +22,10 @@ func TestBasicUpdate(t *testing.T) {
 	var orig basicType
 
 	orig = getBasicOriginal()
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"A": "bar",
 		"C": 2
-	}`)), nil)
+	}`), nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "bar", orig.A)
@@ -34,10 +34,10 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, math.Pi, orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"B": false,
 		"D": 0
-	}`)), nil)
+	}`), nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "foo", orig.A)
@@ -46,7 +46,7 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, float64(0), orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, getRawMessageMap(t, []byte(`{}`)), nil)
+	err = Update(&orig, []byte(`{}`), nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "foo", orig.A)
@@ -55,15 +55,15 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, math.Pi, orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"E": 123
-	}`)), nil)
+	}`), nil)
 	assert.Error(t, err)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"e": 123
-	}`)), nil)
+	}`), nil)
 	assert.Nil(t, err)
 	assert.Equal(t, 123, orig.E)
 }
@@ -89,16 +89,16 @@ func TestUpdateWithValidator(t *testing.T) {
 
 	orig := getBasicOriginal()
 
-	err := Update(&orig, getRawMessageMap(t, []byte(`{
+	err := Update(&orig, []byte(`{
 		"A": "bar",
 		"C": 2
-	}`)), vf)
+	}`), vf)
 	assert.Nil(t, err)
 
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"A": "",
 		"C": 2
-	}`)), vf)
+	}`), vf)
 	assert.Error(t, err)
 	assert.IsType(t, ValidateError{}, err)
 	assert.Equal(t, "validate error on key A: can't be empty string", err.Error())
@@ -106,24 +106,39 @@ func TestUpdateWithValidator(t *testing.T) {
 
 func TestNonPointerUpdate(t *testing.T) {
 	orig := basicType{}
-	err := Update(orig, getRawMessageMap(t, []byte(`{
+	err := Update(orig, []byte(`{
 		"A": "bar",
 		"C": 2
-	}`)), nil)
+	}`), nil)
 	assert.Error(t, err)
 }
 
 func TestInvalidTypeUpdate(t *testing.T) {
-	orig := basicType{}
-	err := Update(&orig, getRawMessageMap(t, []byte(`{
+	orig := getBasicOriginal()
+	err := Update(&orig, []byte(`{
 		"A": false
-	}`)), nil)
+	}`), nil)
 	assert.Error(t, err)
 
-	err = Update(&orig, getRawMessageMap(t, []byte(`{
+	err = Update(&orig, []byte(`{
 		"C": 3.1415926535
-	}`)), nil)
+	}`), nil)
 	assert.Error(t, err)
+
+	assert.Equal(t, getBasicOriginal(), orig, "original object shouldn't have changed")
+}
+
+func TestBadJSON(t *testing.T) {
+	orig := getBasicOriginal()
+	err := Update(&orig, []byte(`{
+		"Q": "whoops"
+	}`), nil)
+	assert.Error(t, err)
+
+	err = Update(&orig, []byte(`notjson`), nil)
+	assert.Error(t, err)
+
+	assert.Equal(t, getBasicOriginal(), orig, "original object shouldn't have changed")
 }
 
 func getBasicOriginal() basicType {

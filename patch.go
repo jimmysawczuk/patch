@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ValidateError is the error type that will be returned if an update fails in the validation step.
 type ValidateError struct {
 	key string
 	err error
@@ -18,19 +19,32 @@ func (u ValidateError) Error() string {
 	return fmt.Sprintf("validate error on key %s: %s", u.key, u.err.Error())
 }
 
+// Validator is an interface that describes how an object should be validated before updating.
 type Validator interface {
+	// Validate takes a key to describe what the value is and the value and returns an error if it
+	// fails validation.
 	Validate(key string, value interface{}) error
 }
 
+// ValidateFunc wraps the func(string, interface{}) error signature in a type to make building
+// Validators more convenient.
 type ValidateFunc func(string, interface{}) error
 
+// Validate implements Validator, and just returns the function itself.
 func (vf ValidateFunc) Validate(key string, value interface{}) error {
 	return vf(key, value)
 }
 
 // Update takes takes a map[string]json.RawMessage that represents a partial target object in JSON. It then applies the
 // values set in the map to the current object, only touching what's changed.
-func Update(dest interface{}, src map[string]json.RawMessage, validator Validator) error {
+func Update(dest interface{}, src []byte, validator Validator) error {
+	// Unmarshal src into a map[string]json.RawMessage.
+	m := map[string]json.RawMessage{}
+	err := json.Unmarshal(src, &m)
+	if err != nil {
+		return errors.Wrap(err, "can't unmarshal src")
+	}
+
 	// dest should be a pointer here, because when we're done we'll overwrite zero or more values on it.
 	if reflect.ValueOf(dest).Kind() != reflect.Ptr {
 		return errors.New("destination must be a pointer")
@@ -62,7 +76,7 @@ func Update(dest interface{}, src map[string]json.RawMessage, validator Validato
 
 	// We now have a map of all fields representation in JSON and where they map to on the struct. All that's left to do is iterate through
 	// the incoming values and attempt to set them on our target.
-	for key, val := range src {
+	for key, val := range m {
 
 		// Find the field on the target struct; if it's not in the map, something fishy is going on and we better abort.
 		fieldIndex, ok := fieldMap[key]
