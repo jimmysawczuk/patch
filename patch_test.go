@@ -104,6 +104,28 @@ func TestUpdateWithValidator(t *testing.T) {
 	assert.Equal(t, "validate error on key A: can't be empty string", err.Error())
 }
 
+func TestNonPointerUpdate(t *testing.T) {
+	orig := basicType{}
+	err := Update(orig, getRawMessageMap(t, []byte(`{
+		"A": "bar",
+		"C": 2
+	}`)), nil)
+	assert.Error(t, err)
+}
+
+func TestInvalidTypeUpdate(t *testing.T) {
+	orig := basicType{}
+	err := Update(&orig, getRawMessageMap(t, []byte(`{
+		"A": false
+	}`)), nil)
+	assert.Error(t, err)
+
+	err = Update(&orig, getRawMessageMap(t, []byte(`{
+		"C": 3.1415926535
+	}`)), nil)
+	assert.Error(t, err)
+}
+
 func getBasicOriginal() basicType {
 	return basicType{
 		A: "foo",
