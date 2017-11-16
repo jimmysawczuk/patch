@@ -9,7 +9,11 @@ Package patch facilitates updating strongly-typed, JSON-friendly objects with we
 ```go
 package main
 
-import "github.com/jimmysawczuk/patch"
+import (
+	"fmt"
+
+	"github.com/jimmysawczuk/patch"
+)
 
 type basicType struct {
 	A string
@@ -20,20 +24,47 @@ type basicType struct {
 }
 
 func main() {
-    v := basicType{
-        A: "foo",
-        B: true,
-        C: 2,
-        D: 3.14127,
-        E: 10,
-    }
+	v := basicType{
+		A: "foo",
+		B: true,
+		C: 2,
+		D: 3.14127,
+		E: 10,
+	}
 
-    patch.Apply(&v, `{
+	err := patch.Apply(&v, []byte(`{
         "A": "bar",
         "B": false
-    }`)
+    }`), nil)
 
-    // v.A == "bar"
-    // v.B == false
+	fmt.Println("err:", err)
+	fmt.Println("updated value:", v)
+	// v.A == "bar"
+	// v.B == false
+
+	err = patch.Apply(&v, []byte(`{
+        "A": 1
+    }`), nil)
+
+	// an err is returned because A's type doesn't match its target object.
+	fmt.Println("err:", err)
+
+	err = patch.Apply(&v, []byte(`{
+        "C": -1
+    }`), patch.ValidateFunc(func(key string, value interface{}) error {
+		switch key {
+		case "C":
+			v := *(value.(*int))
+			if v <= 0 {
+				return fmt.Errorf("C can't be <= 0")
+			}
+		}
+
+		return nil
+	}))
+
+	// an err is returned because C's value doesn't pass the validation rule.
+	fmt.Println("err:", err)
 }
+
 ```

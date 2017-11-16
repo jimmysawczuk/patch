@@ -1,3 +1,6 @@
+// Package patch facilitates updating strongly-typed, JSON-friendly objects with weakly-typed objects that might come from an API request.
+// It'll only touch fields in the strongly-typed object that are set in the weakly-typed object. It also allows custom validation before
+// any fields are set.
 package patch
 
 import (
@@ -35,9 +38,9 @@ func (vf ValidateFunc) Validate(key string, value interface{}) error {
 	return vf(key, value)
 }
 
-// Update takes takes a map[string]json.RawMessage that represents a partial target object in JSON. It then applies the
+// Apply takes a JSON blob (as a []byte) which represents a partial target object in JSON. It then applies the
 // values set in the map to the current object, only touching what's changed.
-func Update(dest interface{}, src []byte, validator Validator) error {
+func Apply(dest interface{}, src []byte, validator Validator) error {
 	// Unmarshal src into a map[string]json.RawMessage.
 	m := map[string]json.RawMessage{}
 	err := json.Unmarshal(src, &m)

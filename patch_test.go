@@ -17,12 +17,12 @@ type basicType struct {
 	E int `json:"e"`
 }
 
-func TestBasicUpdate(t *testing.T) {
+func TestBasicApply(t *testing.T) {
 	var err error
 	var orig basicType
 
 	orig = getBasicOriginal()
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"A": "bar",
 		"C": 2
 	}`), nil)
@@ -34,7 +34,7 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, math.Pi, orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"B": false,
 		"D": 0
 	}`), nil)
@@ -46,7 +46,7 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, float64(0), orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, []byte(`{}`), nil)
+	err = Apply(&orig, []byte(`{}`), nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "foo", orig.A)
@@ -55,13 +55,13 @@ func TestBasicUpdate(t *testing.T) {
 	assert.Equal(t, math.Pi, orig.D)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"E": 123
 	}`), nil)
 	assert.Error(t, err)
 
 	orig = getBasicOriginal()
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"e": 123
 	}`), nil)
 	assert.Nil(t, err)
@@ -89,13 +89,13 @@ func TestUpdateWithValidator(t *testing.T) {
 
 	orig := getBasicOriginal()
 
-	err := Update(&orig, []byte(`{
+	err := Apply(&orig, []byte(`{
 		"A": "bar",
 		"C": 2
 	}`), vf)
 	assert.Nil(t, err)
 
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"A": "",
 		"C": 2
 	}`), vf)
@@ -104,23 +104,23 @@ func TestUpdateWithValidator(t *testing.T) {
 	assert.Equal(t, "validate error on key A: can't be empty string", err.Error())
 }
 
-func TestNonPointerUpdate(t *testing.T) {
+func TestNonPointerApply(t *testing.T) {
 	orig := basicType{}
-	err := Update(orig, []byte(`{
+	err := Apply(orig, []byte(`{
 		"A": "bar",
 		"C": 2
 	}`), nil)
 	assert.Error(t, err)
 }
 
-func TestInvalidTypeUpdate(t *testing.T) {
+func TestInvalidTypeApply(t *testing.T) {
 	orig := getBasicOriginal()
-	err := Update(&orig, []byte(`{
+	err := Apply(&orig, []byte(`{
 		"A": false
 	}`), nil)
 	assert.Error(t, err)
 
-	err = Update(&orig, []byte(`{
+	err = Apply(&orig, []byte(`{
 		"C": 3.1415926535
 	}`), nil)
 	assert.Error(t, err)
@@ -130,12 +130,12 @@ func TestInvalidTypeUpdate(t *testing.T) {
 
 func TestBadJSON(t *testing.T) {
 	orig := getBasicOriginal()
-	err := Update(&orig, []byte(`{
+	err := Apply(&orig, []byte(`{
 		"Q": "whoops"
 	}`), nil)
 	assert.Error(t, err)
 
-	err = Update(&orig, []byte(`notjson`), nil)
+	err = Apply(&orig, []byte(`notjson`), nil)
 	assert.Error(t, err)
 
 	assert.Equal(t, getBasicOriginal(), orig, "original object shouldn't have changed")
