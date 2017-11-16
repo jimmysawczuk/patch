@@ -33,9 +33,9 @@ func main() {
 	}
 
 	err := patch.Apply(&v, []byte(`{
-        "A": "bar",
-        "B": false
-    }`), nil)
+		"A": "bar",
+		"B": false
+	}`), nil)
 
 	fmt.Println("err:", err)
 	fmt.Println("updated value:", v)
@@ -43,15 +43,15 @@ func main() {
 	// v.B == false
 
 	err = patch.Apply(&v, []byte(`{
-        "A": 1
-    }`), nil)
+		"A": 1
+	}`), nil)
 
 	// an err is returned because A's type doesn't match its target object.
 	fmt.Println("err:", err)
 
 	err = patch.Apply(&v, []byte(`{
-        "C": -1
-    }`), patch.ValidateFunc(func(key string, value interface{}) error {
+		"C": -1
+	}`), patch.ValidateFunc(func(key string, value interface{}) error {
 		switch key {
 		case "C":
 			v := *(value.(*int))
@@ -66,5 +66,4 @@ func main() {
 	// an err is returned because C's value doesn't pass the validation rule.
 	fmt.Println("err:", err)
 }
-
 ```
