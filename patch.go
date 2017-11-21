@@ -1,6 +1,6 @@
-// Package patch facilitates updating strongly-typed, JSON-friendly objects with weakly-typed objects that might come from an API request.
-// It'll only touch fields in the strongly-typed object that are set in the weakly-typed object. It also allows custom validation before
-// any fields are set.
+// Package patch facilitates updating strongly-typed, JSON-friendly objects with weakly-typed objects that might
+// come from an API request. It'll only touch fields in the strongly-typed object that are set in the weakly-typed
+// object. It also allows custom validation before any fields are set.
 package patch
 
 import (
@@ -56,13 +56,14 @@ func Apply(dest interface{}, src []byte, validator Validator) error {
 	// Get the indirect of dest to determine its concrete type.
 	indirect := reflect.Indirect(reflect.ValueOf(dest))
 
-	// We only want to touch dest if the entire function finishes successfully, rather than erroring in the middle of setting
-	// some fields but not others. So we'll create a copy of dest and work with the copy until the end.
+	// We only want to touch dest if the entire function finishes successfully, rather than erroring in the
+	// middle of setting some fields but not others. So we'll create a copy of dest and work with the copy
+	// until the end.
 	destVal := reflect.New(indirect.Type())
 	reflect.Indirect(destVal).Set(indirect)
 
-	// Iterate through all of dest's fields, taking note of what they marshal to in JSON via the struct tags. (If there is no json tag, we assume
-	// they map to the same name as the field.)
+	// Iterate through all of dest's fields, taking note of what they marshal to in JSON via the struct tags.
+	// (If there is no json tag, we assume they map to the same name as the field.)
 	fieldMap := map[string]int{}
 	for i := 0; i < indirect.Type().NumField(); i++ {
 		field := indirect.Type().Field(i)
@@ -77,18 +78,19 @@ func Apply(dest interface{}, src []byte, validator Validator) error {
 		}
 	}
 
-	// We now have a map of all fields representation in JSON and where they map to on the struct. All that's left to do is iterate through
-	// the incoming values and attempt to set them on our target.
+	// We now have a map of all fields representation in JSON and where they map to on the struct. All that's left to
+	// do is iterate through the incoming values and attempt to set them on our target.
 	for key, val := range m {
 
-		// Find the field on the target struct; if it's not in the map, something fishy is going on and we better abort.
+		// Find the field on the target struct; if it's not in the map, something fishy is going on and we better
+		// abort.
 		fieldIndex, ok := fieldMap[key]
 		if !ok {
 			return errors.Errorf("key %s wasn't found in field map", key)
 		}
 
-		// We found the field, so make a target of the same type that we can unmarshal into, then try to unmarshal it. If we can't unmarshal it,
-		// abort.
+		// We found the field, so make a target of the same type that we can unmarshal into, then try to unmarshal it.
+		// If we can't unmarshal it, abort.
 		target := reflect.New(indirect.Type().Field(fieldIndex).Type).Interface()
 		err := json.Unmarshal(val, target)
 		if err != nil {
@@ -102,7 +104,8 @@ func Apply(dest interface{}, src []byte, validator Validator) error {
 			}
 		}
 
-		// We have our field and we have our new value, so we can go ahead and set it. Broken up into a couple lines for readability.
+		// We have our field and we have our new value, so we can go ahead and set it. Broken up into a couple
+		// lines for readability.
 		targetField := reflect.Indirect(destVal).Field(fieldIndex)
 		targetValue := reflect.Indirect(reflect.ValueOf(target))
 		targetField.Set(targetValue)
