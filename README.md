@@ -1,6 +1,6 @@
 # patch
 
-[![GoDoc](https://godoc.org/github.com/jimmysawczuk/patch?status.svg)](https://godoc.org/github.com/jimmysawczuk/patch) [![Go Report Card](https://goreportcard.com/badge/github.com/jimmysawczuk/patch)](https://goreportcard.com/report/github.com/jimmysawczuk/patch)
+[![GoDoc](https://godoc.org/github.com/jimmysawczuk/patch?status.svg)](https://godoc.org/github.com/jimmysawczuk/patch) [![Go Report Card](https://goreportcard.com/badge/github.com/jimmysawczuk/patch)](https://goreportcard.com/report/github.com/jimmysawczuk/patch) [![Build Status](https://travis-ci.org/jimmysawczuk/patch.svg?branch=master)](https://travis-ci.org/jimmysawczuk/patch)
 
 Package patch facilitates updating strongly-typed, JSON-friendly objects with weakly-typed objects that might come from an API request. It'll only touch fields in the strongly-typed object that are set in the weakly-typed object. It also allows custom validation before any fields are set.
 
